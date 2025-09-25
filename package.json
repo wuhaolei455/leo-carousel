@@ -2,7 +2,6 @@
   "name": "leo-carousel",
   "description": "轮播图组件sdk",
   "version": "1.0.0",
-  "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
