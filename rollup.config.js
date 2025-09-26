@@ -40,8 +40,7 @@ export default [
             }),
             postcss({
                 extract: true,
-                modules: true,
-                use: ['less'],
+                modules: false,
                 minimize: production,
                 sourceMap: !production
             }),
@@ -68,8 +67,7 @@ export default [
             }),
             postcss({
                 extract: true,
-                modules: true,
-                use: ['less'],
+                modules: false,
                 minimize: production,
                 sourceMap: !production
             }),
@@ -101,8 +99,7 @@ export default [
             }),
             postcss({
                 extract: true,
-                modules: true,
-                use: ['less'],
+                modules: false,
                 minimize: production,
                 sourceMap: !production
             }),
@@ -121,9 +118,9 @@ export default [
         plugins: [
             postcss({
                 extract: true,
-                minimize: true,
-                sourceMap: false,
-                use: ['less']
+                modules: false,
+                minimize: production,
+                sourceMap: !production
             }),
             dts()
         ]
