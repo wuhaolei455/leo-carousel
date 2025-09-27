@@ -118,7 +118,7 @@ const Carousel: React.FC<CarouselProps> = ({
       <div
         className="carousel-wrapper"
         style={{
-          transform: `translateX(-${currentIndex * slidePercent}%)`,
+          transform: `translate3D(-${currentIndex * slidePercent}%, 0, 0)`,
           transition: isTransitioning ? 'transform 0.3s ease' : 'none',
           width: `${displayImages.length * 100}%`, 
           willChange: 'transform'
