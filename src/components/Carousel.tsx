@@ -11,10 +11,14 @@ const Carousel: React.FC<CarouselProps> = ({
   showIndicators = true,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartX = useRef(0);
 
+  const displayImages = images.length > 0 ? [...images, images[0]] : [];
   const imageCount = images.length;
+  const slidePercent = 100 / (displayImages.length || 1);
+  const currentRealIndex = currentIndex === imageCount ? 0 : currentIndex;
 
   const stopAutoplay = useCallback(() => {
     if (timerRef.current) {
@@ -31,31 +35,32 @@ const Carousel: React.FC<CarouselProps> = ({
 
     stopAutoplay();
     timerRef.current = setInterval(() => {
-      setCurrentIndex(prev => {
-        if (imageCount === 0) return 0;
-        return (prev + 1) % imageCount;
-      });
+      goToNext()
     }, autoplayInterval);
   }, [autoplay, autoplayInterval, imageCount, stopAutoplay]);
 
-  const goToNext = useCallback(() => {
-    if (imageCount === 0) return;
-    setCurrentIndex(prev => (prev + 1) % imageCount);
-  }, [imageCount]);
+  const goToNext = () => {
+    setIsTransitioning(true);
+    setCurrentIndex(prev => prev + 1);
+  }
 
-  const goToPrev = useCallback(() => {
-    if (imageCount === 0) return;
-    setCurrentIndex(prev => (prev - 1 + imageCount) % imageCount);
-  }, [imageCount]);
+  const goToPrev = () => {
+    setIsTransitioning(true);
+    if (currentIndex === 0) {
+      setCurrentIndex(Math.max(imageCount - 1, 0));
+    } else {
+      setCurrentIndex(prev => prev - 1);
+    }
+  }
 
-  const goToSlide = useCallback(
-    (index: number) => {
-      if (imageCount === 0) return;
-      const clampedIndex = Math.min(Math.max(index, 0), imageCount - 1);
-      setCurrentIndex(clampedIndex);
-    },
-    [imageCount]
-  );
+  const goToSlide = (index: number) => {
+    setIsTransitioning(true);
+    setCurrentIndex(index);
+    stopAutoplay();
+    setTimeout(() => {
+      startAutoplay()
+    }, 1000);
+  }
 
   useEffect(() => {
     startAutoplay();
@@ -94,14 +99,24 @@ const Carousel: React.FC<CarouselProps> = ({
       }
     }
 
-    startAutoplay();
+    setTimeout(() => {
+      startAutoplay();
+    }, 1000);
   };
 
-  const wrapperWidth = imageCount === 0 ? 100 : imageCount * 100;
-  const slideWidth = imageCount === 0 ? 100 : 100 / imageCount;
-  const offset = imageCount === 0 ? 0 : (currentIndex * 100) / imageCount;
+  const handleTransitionEnd = () => {
+    if (imageCount > 0 && currentIndex === imageCount) {
+      setIsTransitioning(false);
+      setCurrentIndex(0);
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          setIsTransitioning(true);
+        });
+      }, 0);
+    }
+  };
 
-  return (
+  return (imageCount > 0 &&
     <div
       className={`carousel-container ${className || ''}`}
       style={style}
@@ -112,13 +127,15 @@ const Carousel: React.FC<CarouselProps> = ({
       <div
         className="carousel-wrapper"
         style={{
-          transform: `translateX(-${offset}%)`,
-          transition: 'transform 0.5s ease',
-          width: `${wrapperWidth}%`,
+          transform: `translateX(-${currentIndex * slidePercent}%)`,
+          transition: isTransitioning ? 'transform 0.3s ease' : 'none',
+          width: `${displayImages.length * 100}%`, 
+          willChange: 'transform'
         }}
+        onTransitionEnd={handleTransitionEnd}
       >
-        {images.map((image, index) => (
-          <div className="carousel-slide" key={index} style={{ width: `${slideWidth}%` }}>
+        {displayImages.map((image, index) => (
+          <div className="carousel-slide" key={index} style={{ width: `${slidePercent}%` }}>
             <img src={image} alt={`slide ${index}`}
               className="carousel-image"
             />
@@ -130,7 +147,7 @@ const Carousel: React.FC<CarouselProps> = ({
           {images.map((_: string, index: number) => (
             <div
               key={index}
-              className={`indicator ${currentIndex === index ? 'active' : ''}`}
+              className={`indicator ${currentRealIndex === index ? 'active' : ''}`}
               onClick={() => goToSlide(index)}
             ></div>
           ))}
