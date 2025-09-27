@@ -39,9 +39,14 @@ const Carousel: React.FC<CarouselProps> = ({
     }, autoplayInterval);
   }, [autoplay, autoplayInterval, imageCount, stopAutoplay]);
 
+  useEffect(() => {
+    startAutoplay();
+    return () => stopAutoplay();
+  }, [startAutoplay, stopAutoplay]);
+
   const goToNext = () => {
     setIsTransitioning(true);
-    setCurrentIndex(prev => prev + 1);
+    setCurrentIndex(prev => (prev + 1) % (imageCount + 1));
   }
 
   const goToPrev = () => {
@@ -49,7 +54,7 @@ const Carousel: React.FC<CarouselProps> = ({
     if (currentIndex === 0) {
       setCurrentIndex(Math.max(imageCount - 1, 0));
     } else {
-      setCurrentIndex(prev => prev - 1);
+      setCurrentIndex(prev => (prev - 1 + imageCount + 1) % (imageCount + 1));
     }
   }
 
@@ -61,20 +66,6 @@ const Carousel: React.FC<CarouselProps> = ({
       startAutoplay()
     }, 1000);
   }
-
-  useEffect(() => {
-    startAutoplay();
-    return () => stopAutoplay();
-  }, [startAutoplay, stopAutoplay]);
-
-  useEffect(() => {
-    if (imageCount === 0) {
-      setCurrentIndex(0);
-      stopAutoplay();
-    } else {
-      setCurrentIndex(prev => Math.min(prev, imageCount - 1));
-    }
-  }, [imageCount, stopAutoplay]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
